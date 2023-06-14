@@ -90,10 +90,10 @@ namespace NLayer.Repository.Migrations
                 columns: new[] { "Id", "CategoryId", "CreatedDate", "Name", "Price", "Stock", "UpdatedDate" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2023, 6, 12, 22, 10, 41, 236, DateTimeKind.Local).AddTicks(2284), "Kalem 1", 100m, 20, null },
-                    { 2, 1, new DateTime(2023, 6, 12, 22, 10, 41, 236, DateTimeKind.Local).AddTicks(2295), "Kalem 2", 200m, 30, null },
-                    { 3, 1, new DateTime(2023, 6, 12, 22, 10, 41, 236, DateTimeKind.Local).AddTicks(2296), "Kalem 3", 600m, 60, null },
-                    { 4, 2, new DateTime(2023, 6, 12, 22, 10, 41, 236, DateTimeKind.Local).AddTicks(2297), "Kitap 2", 6600m, 320, null }
+                    { 1, 1, new DateTime(2023, 6, 14, 17, 20, 11, 270, DateTimeKind.Local).AddTicks(1760), "Kalem 1", 100m, 20, null },
+                    { 2, 1, new DateTime(2023, 6, 14, 17, 20, 11, 270, DateTimeKind.Local).AddTicks(1775), "Kalem 2", 200m, 30, null },
+                    { 3, 1, new DateTime(2023, 6, 14, 17, 20, 11, 270, DateTimeKind.Local).AddTicks(1776), "Kalem 3", 600m, 60, null },
+                    { 4, 2, new DateTime(2023, 6, 14, 17, 20, 11, 270, DateTimeKind.Local).AddTicks(1777), "Kitap 2", 6600m, 320, null }
                 });
 
             migrationBuilder.InsertData(
