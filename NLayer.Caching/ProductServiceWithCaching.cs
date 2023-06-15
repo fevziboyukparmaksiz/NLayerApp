@@ -5,6 +5,7 @@ using NLayer.Core.Models;
 using NLayer.Core.Repositories;
 using NLayer.Core.Services;
 using NLayer.Core.UnitOfWorks;
+using NLayer.Service.Exceptions;
 using System.Linq.Expressions;
 
 namespace NLayer.Caching
@@ -26,62 +27,85 @@ namespace NLayer.Caching
 
             if (_memoryCache.TryGetValue(CacheProductKey, out _))
             {
-                _memoryCache.Set(CacheProductKey, _repository.GetAll().ToList());
+                _memoryCache.Set(CacheProductKey, _repository.GetProductsWithCategory());
             }
-
-
         }
 
-
-
-        public Task<Product> AddAsync(Product entity)
+        public async Task<Product> AddAsync(Product entity)
         {
-            throw new NotImplementedException();
+            await _repository.AddAsync(entity);
+            await _unitOfWork.CommitAsync();
+            await CacheAllProductsAsync();
+            return entity;
         }
 
-        public Task<IEnumerable<Product>> AddRangeAsync(IEnumerable<Product> entities)
+        public async Task<IEnumerable<Product>> AddRangeAsync(IEnumerable<Product> entities)
         {
-            throw new NotImplementedException();
+            await _repository.AddRangeAsync(entities);
+            await _unitOfWork.CommitAsync();
+            await CacheAllProductsAsync();
+            return entities;
         }
 
         public Task<bool> AnyAsync(Expression<Func<Product, bool>> expression)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_memoryCache.Get<List<Product>>(CacheProductKey).Where(expression.Compile()).Any());
         }
 
         public Task<IEnumerable<Product>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_memoryCache.Get<IEnumerable<Product>>(CacheProductKey));
         }
 
         public Task<Product> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var product = _memoryCache.Get<List<Product>>(CacheProductKey).FirstOrDefault(x => x.Id == id);
+            if (product == null)
+            {
+                throw new NotFoundException($"{typeof(Product).Name}({id}) is not found");
+            }
+            return Task.FromResult(product);
         }
 
         public Task<CustomResponseDTO<List<ProductWithCategoryDto>>> GetProductsWithCategory()
         {
-            throw new NotImplementedException();
+            var products = _memoryCache.Get<IEnumerable<Product>>(CacheProductKey);
+
+            var productsWithCategoryDto = _mapper.Map<List<ProductWithCategoryDto>>(products);
+            return Task.FromResult(CustomResponseDTO<List<ProductWithCategoryDto>>.Success(200, productsWithCategoryDto));
         }
 
-        public Task RemoveAsync(Product entity)
+        public async Task RemoveAsync(Product entity)
         {
-            throw new NotImplementedException();
+            _repository.Remove(entity);
+            await _unitOfWork.CommitAsync();
+            await CacheAllProductsAsync();
         }
 
-        public Task RemoveRangeAsync(IEnumerable<Product> entities)
+        public async Task RemoveRangeAsync(IEnumerable<Product> entities)
         {
-            throw new NotImplementedException();
+            _repository.RemoveRange(entities);
+            await _unitOfWork.CommitAsync();
+            await CacheAllProductsAsync();
         }
 
-        public Task UpdateAsync(Product entity)
+        public async Task UpdateAsync(Product entity)
         {
-            throw new NotImplementedException();
+            _repository.Update(entity);
+            await _unitOfWork.CommitAsync();
+            await CacheAllProductsAsync();
         }
 
         public IQueryable<Product> Where(Expression<Func<Product, bool>> expression)
         {
-            throw new NotImplementedException();
+            return _memoryCache.Get<List<Product>>(CacheProductKey).Where(expression.Compile()).AsQueryable();
+
         }
+
+        public async Task CacheAllProductsAsync()
+        {
+            _memoryCache.Set(CacheProductKey, _repository.GetAll().ToList());
+        }
+
     }
 }
